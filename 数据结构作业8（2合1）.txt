@@ -1,0 +1,112 @@
+#include <iostream>
+using namespace std;
+struct AVLTreeNode {
+    int key;
+    AVLTreeNode* left;
+    AVLTreeNode* right;
+    int height;
+};
+
+int height(AVLTreeNode* node) {
+    if (node == nullptr)
+        return 0;
+    return max(height(node->left), height(node->right)) + 1;
+}
+
+int findNearestLeaf(AVLTreeNode* node) {
+    if (node == nullptr) {
+        return -1;
+    }
+
+    if (node->left == nullptr && node->right == nullptr) {
+        return node->key;
+    }
+
+    if (node->left != nullptr) {
+        return findNearestLeaf(node->left);
+    }
+    else
+    return findNearestLeaf(node->right);
+}
+
+AVLTreeNode* newNode(int key) {
+    AVLTreeNode* node = new AVLTreeNode();
+    node->key = key;
+    node->left = nullptr;
+    node->right = nullptr;
+    node->height = 1;
+    return node;
+}
+
+AVLTreeNode* rightRotate(AVLTreeNode* y) {
+    AVLTreeNode* x = y->left;
+    AVLTreeNode* T2 = x->right;
+
+    x->right = y;
+    y->left = T2;
+
+    y->height = height(y);
+    x->height = height(x);
+
+    return x;
+}
+
+AVLTreeNode* leftRotate(AVLTreeNode* x) {
+    AVLTreeNode* y = x->right;
+    AVLTreeNode* T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    x->height = height(x);
+    y->height = height(y);
+
+    return y;
+}
+
+int getBalance(AVLTreeNode* N) {
+    if (N == nullptr)
+        return 0;
+    return height(N->left) - height(N->right);
+}
+
+AVLTreeNode* insert(AVLTreeNode* node, int key) {
+    if (node == nullptr)
+        return newNode(key);
+
+    if (key < node->key)
+        node->left = insert(node->left, key);
+    else if (key > node->key)
+        node->right = insert(node->right, key);
+    else
+        return node;
+
+    node->height = height(node);
+
+    int balance = getBalance(node);
+
+    if (balance > 1 && key < node->left->key)
+        return rightRotate(node);//左左
+    if (balance < -1 && key > node->right->key)
+        return leftRotate(node);//右右
+    if (balance > 1 && key > node->left->key) {
+        node->left = leftRotate(node->left);
+        return rightRotate(node);//左右
+    }
+    if (balance < -1 && key < node->right->key) {
+        node->right = rightRotate(node->right);
+        return leftRotate(node);//右左
+    }
+    return node;
+}
+int main() {
+    AVLTreeNode* root = nullptr;
+    int keys[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    for (int key : keys) {
+        root = insert(root, key);
+    }
+    cout << "AVL树的高度是: " << height(root) << endl;
+    int NearestLeafValue = findNearestLeaf(root);
+    cout << "距离根节点最近的叶节点的值是: " << NearestLeafValue << endl;
+    return 0;
+}

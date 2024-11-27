@@ -1,0 +1,107 @@
+公式化：
+#include <iostream>
+#include <vector>
+#include <fstream>
+using namespace std;
+
+void josephus(int n,int m) {
+    vector<int> people(n);
+    for(int i=0;i<n;i++) {
+        people[i] = i+1;
+    }
+    vector<int> order;
+    int index = 0;
+    while(people.size()>1){
+        index = (index + m-1) % people.size();
+        order.push_back(people[index]);
+        people.erase(people.begin()+index);
+    }
+    for(int i=0;i<order.size();i++) {
+        cout<<order[i]<<" ";
+    }
+    cout<<people[0]<<endl;
+}
+int main() {
+    ifstream input("D:\\C++homework\\input.txt");
+    int n,m;
+    input>>n>>m;
+    if(n < 3 || n > 100 || m < 1 || m > n){
+        cout<<"WRONG"<<endl;
+        return 0;
+    }
+    josephus(n,m);
+    return 0;
+}
+
+
+
+
+
+
+
+链表法：
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+struct node {
+    int data;
+    node* next;
+};
+
+class linkedlist {
+public:
+    node* head;
+    linkedlist(): head(NULL) {}
+    void add(int value) {
+        node* temp = new node{value, nullptr};
+
+        if (head == NULL) {
+            head = temp;
+            head->next = head;
+        }
+        else {
+            node* curr = head;
+            while(curr->next != head) {
+                curr = curr->next;
+            }
+            curr->next = temp;
+            temp->next = head;
+        }
+    }
+
+
+    void josephus(int m) {
+        node*current = head;
+        node* prev = nullptr;
+        while(current->next != current) {
+            for(int i = 1;i<m;i++){
+                prev = current;
+                current = current->next;
+            }
+            cout<<current->data<<" ";
+            prev->next = current->next;
+
+            delete current;
+            current = prev->next;
+        }
+        cout<<current->data;
+        delete current;
+    }
+};
+int main() {
+    ifstream input("D:\\C++homework\\input.txt");
+    int n,m;
+    input>>n>>m;
+    if(n < 3 || n > 100 || m < 1 || m > n) {
+        cout<<"WRONG"<<endl;
+        return 0;
+    }
+    linkedlist l;
+    for(int i = 1;i<=n;i++) {
+        l.add(i);
+    }
+    l.josephus(m);
+    return 0;
+}
+

@@ -1,0 +1,68 @@
+#include <iostream>
+using namespace std;
+
+template <typename T>
+class chain {
+public:
+    T* arr;
+    int size;
+
+    chain() : arr(nullptr), size(0) {}
+
+    ~chain() {
+        delete[] arr;
+    }
+
+    void input() {
+        cout << "Enter size: ";
+        cin >> size;
+        arr = new T[size];
+        cout << "Enter arr: ";
+        for (int i = 0; i < size; ++i) {
+            cin >> arr[i];
+        }
+    }
+
+    void split(chain<T>& a, chain<T>& b) {
+        int singleCount = size/ 2;
+        int doubleCount = (size+1) / 2;
+        a.size = singleCount;
+        a.arr = new T[singleCount];
+        b.size = doubleCount;
+        b.arr = new T[doubleCount];
+
+        int singleindex = 0, doubleindex = 0;
+        for (int i = 0; i < size; ++i) {
+            if (i % 2 == 0) {
+                b.arr[doubleindex++] = arr[i];
+            } else {
+                a.arr[singleindex++] = arr[i];
+            }
+        }
+    }
+};
+
+void test() {
+    chain<int> c;
+    c.input();
+    chain<int> a, b;
+    c.split(a, b);
+
+    cout << "a: ";
+    for (int i = 0; i < a.size; ++i) {
+        cout << a.arr[i] << " ";
+    }
+    cout << endl;
+
+    cout << "b: ";
+    for (int i = 0; i < b.size; ++i) {
+        cout << b.arr[i] << " ";
+    }
+    cout << endl;
+}
+
+int main() {
+    test();
+    return 0;
+}
+

@@ -1,0 +1,148 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+
+using namespace std;
+
+class Deque {
+private:
+    int* arr;
+    int front, rear, maxSize, count;
+
+public:
+    Deque(int size) {
+        maxSize = size;
+        arr = new int[maxSize];
+        front = -1;
+        rear = 0;
+        count = 0;
+    }
+
+    ~Deque() {
+        delete[] arr;
+    }
+
+    bool IsEmpty() {
+        return count == 0;
+    }
+
+    bool IsFull() {
+        return count == maxSize;
+    }
+
+    void AddLeft(int value) {
+        if (IsFull()) {
+            cout << "FULL" << endl;
+            return;
+        }
+        front = (front + 1) % maxSize;
+        arr[front] = value;
+        count++;
+        Print();
+    }
+
+    void AddRight(int value) {
+        if (IsFull()) {
+            cout << "FULL" << endl;
+            return;
+        }
+        rear = (rear - 1 + maxSize) % maxSize;
+        arr[rear] = value;
+        count++;
+        Print();
+    }
+
+    void DeleteLeft() {
+        if (IsEmpty()) {
+            cout << "EMPTY" << endl;
+            return;
+        }
+        cout << arr[front] << endl;
+        front = (front - 1 + maxSize) % maxSize;
+        count--;
+        Print();
+    }
+
+    void DeleteRight() {
+        if (IsEmpty()) {
+            cout << "EMPTY" << endl;
+            return;
+        }
+        cout << arr[rear] << endl;
+        rear = (rear + 1) % maxSize;
+        count--;
+        Print();
+    }
+
+    void Left() {
+        if (IsEmpty()) {
+            cout << "EMPTY" << endl;
+        } else {
+            cout << arr[front] << endl;
+        }
+    }
+
+    void Right() {
+        if (IsEmpty()) {
+            cout << "EMPTY" << endl;
+        } else {
+            cout << arr[(rear - 1 + maxSize) % maxSize] << endl;
+        }
+    }
+
+    void Print() {
+        if (IsEmpty()) {
+            cout << "EMPTY" << endl;
+            return;
+        }
+        for (int i = 0; i < count; i++) {
+            cout << arr[(front - i + maxSize) % maxSize];
+            if (i < count - 1) cout << " ";
+        }
+        cout << endl;
+    }
+};
+
+int main() {
+    ifstream inputFile("D:/C++homework/input.txt");
+    string line;
+    Deque deque(10);  
+
+    while (getline(inputFile, line)) {
+        istringstream iss(line);
+        string command;
+        iss >> command;
+
+        if (command == "AddLeft") {
+            int value;
+            iss >> value;
+            deque.AddLeft(value);
+        } else if (command == "AddRight") {
+            int value;
+            iss >> value;
+            deque.AddRight(value);
+        } else if (command == "DeleteLeft") {
+            deque.DeleteLeft();
+        } else if (command == "DeleteRight") {
+            deque.DeleteRight();
+        } else if (command == "IsEmpty") {
+            cout << (deque.IsEmpty() ? "Yes" : "No") << endl;
+        } else if (command == "IsFull") {
+            cout << (deque.IsFull() ? "Yes" : "No") << endl;
+        } else if (command == "Left") {
+            deque.Left();
+        } else if (command == "Right") {
+            deque.Right();
+        } else if (command == "Print") {
+            deque.Print();
+        } else if (command == "End") {
+            break;
+        } else {
+            cout << "WRONG" << endl;
+        }
+    }
+
+    inputFile.close();
+    return 0;
+}

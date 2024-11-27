@@ -1,0 +1,147 @@
+#include <iostream>
+using namespace std;
+
+template<typename T>
+class LinearProbingHashTable {
+private:
+    int size;
+    T* items;
+    bool* neverUsed;
+    int itemCount;
+
+    int hash(const T& t) const {
+        return t % size;
+    }
+
+    void reorganize() {
+        T* oldItems = items;
+        bool* oldNeverUsed = neverUsed;
+        int oldSize = size;
+
+        size *= 2;
+        items = new T[size];
+        neverUsed = new bool[size];
+
+        for (int i = 0; i < size; i++) {
+            neverUsed[i] = true;
+        }
+
+        itemCount = 0;
+
+        for (int i = 0; i < oldSize; i++) {
+            if (!oldNeverUsed[i]) {
+                insert(oldItems[i]);
+            }
+        }
+
+        delete[] oldItems;
+        delete[] oldNeverUsed;
+    }
+
+public:
+    LinearProbingHashTable(int n) {
+        size = n;
+        items = new T[size];
+        neverUsed = new bool[size];
+        itemCount = 0;
+
+        for (int i = 0; i < size; i++) {
+            neverUsed[i] = true;
+        }
+    }
+
+    ~LinearProbingHashTable() {
+        delete[] items;
+        delete[] neverUsed;
+    }
+
+    void insert(T item) {
+        int index = hash(item);
+
+        while (!neverUsed[index]) {
+            if (items[index] == item) {
+                return;
+            }
+            index = (index + 1) % size;
+        }
+
+        items[index] = item;
+        neverUsed[index] = false;
+
+        if (double(itemCount) / size >= 0.6) {
+            reorganize();
+        }
+    }
+
+    void erase(T item) {
+        int index = hash(item);
+
+        while (!neverUsed[index]) {
+            if (items[index] == item) {
+                neverUsed[index] = true;
+                itemCount--;
+
+                if (double(itemCount) / size < 0.6) {
+                    reorganize();
+                }
+                return;
+            }
+            index = (index + 1) % size;
+            if (index == hash(item)) {
+                break;
+            }
+        }
+
+        cout << "该元素不存在" << endl;
+    }
+
+    bool find(T item) {
+        int index = hash(item);
+
+        while (!neverUsed[index]) {
+            if (items[index] == item) {
+                return true;
+            }
+            index = (index + 1) % size;
+            if (index == hash(item)) {
+                break;
+            }
+        }
+        return false;
+    }
+
+    void output() {
+        cout << "哈希表内容：" << endl;
+        for (int i = 0; i < size; i++) {
+            if (!neverUsed[i]) {
+                cout << items[i] << " ";
+            } else {
+                cout << "[空] ";
+            }
+        }
+        cout << endl;
+    }
+};
+
+int main() {
+    LinearProbingHashTable<int> hashTable(5);
+
+    hashTable.insert(10);
+    hashTable.insert(20);
+    hashTable.insert(30);
+    hashTable.insert(40);
+    hashTable.output();
+
+    cout << "查找 20: " << (hashTable.find(20) ? "找到" : "未找到") << endl;
+
+    hashTable.erase(20);
+    hashTable.output();
+
+    hashTable.erase(25);
+
+    hashTable.insert(50);
+    hashTable.insert(60);
+    hashTable.output();
+
+    return 0;
+}

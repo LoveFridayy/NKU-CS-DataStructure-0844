@@ -1,0 +1,93 @@
+#include <iostream>
+using namespace std;
+
+class MaxHeap {
+private:
+    int* heap;
+    int size;
+    int capacity;
+    int maxElement;
+    int minElement;
+
+public:
+    MaxHeap(int maxElement, int minElement, int cap)
+        : maxElement(maxElement), minElement(minElement), capacity(cap), size(0) {
+        heap = new int[2 * capacity + 2];
+        heap[0] = maxElement;
+    }
+
+    ~MaxHeap() {
+        delete[] heap;
+    }
+
+    void push(int value) {
+        if (value > maxElement || value < minElement) {
+            cout << "输入必须在[minElement,maxElement]内" << endl;
+            return;
+        }
+        if (size >= 2 * capacity) {
+            cout << "堆已满" << endl;
+            return;
+        }
+
+        heap[++size] = value;
+
+        int current = size;
+        while (current > 1 && heap[current] > heap[current / 2]) {
+            swap(heap[current], heap[current / 2]);
+            current /= 2;
+        }
+    }
+
+    int pop() {
+        if (size <= 0) {
+            cout << "堆为空" << endl;
+            return -1;
+        }
+        int maxValue = heap[1];
+        heap[1] = heap[size--];
+        heapify(1);
+        return maxValue;
+    }
+
+    void heapify(int index) {
+        int largest = index;
+        int left = 2 * index;
+        int right = 2 * index + 1;
+
+        if (left <= size && heap[left] > heap[largest]) {
+            largest = left;
+        }
+        if (right <= size && heap[right] > heap[largest]) {
+            largest = right;
+        }
+        if (largest != index) {
+            swap(heap[index], heap[largest]);
+            heapify(largest);
+        }
+    }
+};
+
+int main() {
+    int maxElement, minElement,capacity;
+    cout << "请输入最大值: ";
+    cin >> maxElement;
+    cout << "请输入最小值: ";
+    cin >> minElement;
+    cout << "请输入容量: ";
+    cin >> capacity;
+
+    MaxHeap maxHeap(maxElement, minElement, capacity);
+    int a,b,c;
+    cin >> a;
+    maxHeap.push(a);
+    cin >> b;
+    maxHeap.push(b);
+    cin >> c;
+    maxHeap.push(c);
+
+    cout << "Pop: " << maxHeap.pop() << endl;
+    cout << "Pop: " << maxHeap.pop() << endl;
+
+    return 0;
+}

@@ -1,0 +1,33 @@
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+long long fibonacci(int n, long long a[]) {
+    if (n < 0 || n > 90) {
+        cout << "WRONG" << endl;
+    }
+    if (a[n] != -1) {
+        return a[n];
+    }
+    if (n == 0) {
+        a[n] = 0;
+    } else if (n == 1) {
+        a[n] = 1;
+    } else {
+        a[n] = fibonacci(n - 1, a) + fibonacci(n - 2, a);
+    }
+    return a[n];
+}
+
+int main() {
+    ifstream fin("D:\\C++homework\\input.txt",ios::in);
+    int n;
+    fin >> n;
+    fin.close();
+    long long a[91];
+    fill_n(a, 91, -1);
+    long long result = fibonacci(n, a);
+    cout << result << endl;
+
+    return 0;
+}

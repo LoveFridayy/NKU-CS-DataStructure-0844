@@ -1,0 +1,59 @@
+#include <iostream>
+using namespace std;
+
+class extendedChain {
+    public:
+    int* arr;
+    int size;
+    extendedChain():arr(nullptr), size(0) {}
+    ~extendedChain(){
+        delete[] arr;
+    }
+    void input() {
+        cout << "Enter the size of the array: ";
+        cin >> size;
+        arr = new int[size];
+        for(int i=0; i<size; i++) {
+            cin>>arr[i];
+        }
+    }
+    friend extendedChain meld(const extendedChain &a, const extendedChain &b);};
+
+extendedChain meld(const extendedChain &a, const extendedChain &b) {
+    int newSize = a.size + b.size;
+    extendedChain c;
+    c.arr = new int[newSize];
+    c.size = newSize;
+    int i=0,j=0,k=0;
+    while(i<a.size && j<b.size) {
+        c.arr[k++] = a.arr[i++];
+        c.arr[k++] = b.arr[j++];
+    }
+    while(i<a.size) {
+        c.arr[k++] = a.arr[i++];
+    }
+    while(j<b.size) {
+        c.arr[k++] = b.arr[j++];
+    }
+    return c;
+}
+void meld() {
+    extendedChain a,b;
+    a.input();
+    b.input();
+    extendedChain c = meld(a,b);
+    for(int i=0; i<c.size; i++) {
+        cout << c.arr[i] << " ";
+    }
+}
+int main() {
+    meld();
+    return 0;
+}
+//meld 方法的复杂度可以通过以下几点证明为线性复杂度 O(n + m)，其中 n 和 m 分别为链表 a 和 b 的长度：
+//在 meld
+//方法中，有两个主要的循环：
+//第一个循环交替地将 a 和 b 的元素添加到 c 中，直到其中一个链表的元素取完。 这段代码的复杂度为 O(min(n, m))。
+//第二和第三个循环分别处理剩余元素的附加。 在最坏情况下，其中一个链表可能为空，因此这段代码的复杂度为 O(max(n, m))。
+//因此，整体复杂度为 O(n + m)，表明方法的复杂度与链表的长度具有线性关系。
+

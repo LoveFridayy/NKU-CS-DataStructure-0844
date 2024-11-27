@@ -1,0 +1,122 @@
+#include <iostream>
+#include <string>
+#include <queue>
+using namespace std;
+
+struct Node {
+    char data;
+    Node* left;
+    Node* right;
+    Node(char val) : data(val), left(nullptr), right(nullptr) {}
+};
+
+class BinaryTree {
+public:
+    Node* root;
+
+    BinaryTree() : root(nullptr) {}
+
+    void insert(char val) {
+        if (!root) {
+            root = new Node(val);
+        } else {
+            insertRec(root, val);
+        }
+    }
+
+    void insertRec(Node* node, char val) {
+        if (val < node->data) {
+            if (node->left) {
+                insertRec(node->left, val);
+            } else {
+                node->left = new Node(val);
+            }
+        } else {
+            if (node->right) {
+                insertRec(node->right, val);
+            } else {
+                node->right = new Node(val);
+            }
+        }
+    }
+
+    int countLeaves(Node* node) {
+        if (!node) return 0;
+        return (!node->left && !node->right) ? 1 : countLeaves(node->left) + countLeaves(node->right);
+    }
+
+    void swapChildren(Node* node) {
+        if (node) {
+            swap(node->left, node->right);
+            swapChildren(node->left);
+            swapChildren(node->right);
+        }
+    }
+
+    void levelOrder() {
+        if (!root) return;
+        queue<Node*> q;
+        q.push(root);
+        while (!q.empty()) {
+            Node* curr = q.front();
+            q.pop();
+            cout << curr->data << " ";
+            if (curr->left) q.push(curr->left);
+            if (curr->right) q.push(curr->right);
+        }
+        cout << endl;
+    }
+
+    int width() {
+        if (!root) return 0;
+        int maxWidth = 0;
+        queue<Node*> q;
+        q.push(root);
+        while (!q.empty()) {
+            int count = q.size();
+            maxWidth = max(maxWidth, count);
+            for (int i = 0; i < count; i++) {
+                Node* curr = q.front();
+                q.pop();
+                if (curr->left) q.push(curr->left);
+                if (curr->right) q.push(curr->right);
+            }
+        }
+        return maxWidth;
+    }
+};
+
+int main() {
+    BinaryTree tree;
+    string input;
+    cout << "请输入二叉树的节点: ";
+    getline(cin, input);
+
+
+    if (input.empty()) {
+        cout << "WRONG" << endl;
+        return 1;
+    }
+
+    for (char val : input) {
+        if (val != ' ') {
+            if (!isalpha(val)) {
+                cout << "WRONG" << val << endl;
+                return 1;
+            }
+            tree.insert(val);
+        }
+    }
+
+    cout << "叶节点的数目: " << tree.countLeaves(tree.root) << endl;
+    cout << "交换左右子树前的按层遍历: ";
+    tree.levelOrder();
+
+    tree.swapChildren(tree.root);
+
+    cout << "交换左右子树后的按层遍历: ";
+    tree.levelOrder();
+    cout << "二叉树的宽度为: " << tree.width() << endl;
+
+    return 0;
+}

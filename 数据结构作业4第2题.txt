@@ -1,0 +1,41 @@
+#include <iostream>
+#include <stack>
+#include <fstream>
+using namespace std;
+template <class T>
+void delete_all(stack<T> &s,const T& x) {
+    if(s.empty()) {
+        cout<<"栈为空"<<endl;
+        return ;
+    }
+    stack<T> temp;
+    while(!s.empty()) {
+        if(s.top()==x) {
+            s.pop();
+        }		else {
+            temp.push(s.top());
+            s.pop();
+        }
+    }	while(!temp.empty()) {
+        s.push(temp.top());
+        temp.pop();
+    }
+}
+int main(){
+    stack<char> m;
+    char a,t,n;
+    ifstream infile("D:\\C++homework\\input.txt");
+    infile>>a;
+    infile.get(t);
+    while(infile>>n)
+        m.push(n);
+    delete_all<char> (m,a);
+    while(!m.empty()) {
+        cout<<m.top();
+        m.pop();
+        if(!m.empty())
+            cout<<" ";
+    }
+    cout<<endl;
+    return 0;
+}

@@ -1,0 +1,473 @@
+//第三次第一题 下三角转置上三角
+/*#include<iostream>
+using namespace std;
+template <class T>
+class upperTriangularMatrixs
+{
+private:
+	int n;
+	T *t;
+public:
+	upperTriangularMatrixs(int s)
+	{
+		n = s;
+		t = new T[n*(n + 1) / 2];
+		for (int i = 0; i < n*(n + 1) / 2; i++)
+		{
+			t[i] = 1;
+		}
+	}
+	void set(int x, int y, const T& item)
+	{
+		if (x <= 0 || y <= 0 || x > n || y > n)
+		{
+			cout << "越界" << endl;
+			return;
+		}
+		if (y < x&&item != 0)
+		{
+			cout << "下三角为零" << endl;
+			return;
+		}
+		t[((x - 1)*(n + n - x + 2) / 2) + y - x] = item;
+	}
+	void get(int x, int y, T& item)
+	{
+		if (x <= 0 || y <= 0 || x > n || y > n)
+		{
+			cout << "越界" << endl;
+			return;
+		}
+		if (y < x)
+		{
+			item = 0;
+			return;
+		}
+		item = t[((x - 1)*(n + n - x + 2) / 2) + y - x];
+	}
+	void input()
+	{
+		for (int i = 1; i <= n; i++)
+		{
+			for (int j = i; j <= n; j++)
+			{
+				T temp;
+				cin >> temp;
+				this->set(i, j, temp);
+			}
+		}
+	}
+	void output()
+	{
+		for (int i = 1; i <= n; i++)
+		{
+			for (int j = 1; j <= n; j++)
+			{
+				T temp;
+				this->get(i, j, temp);
+				cout << temp << " ";
+			}
+			cout << endl;
+		}
+	}
+};
+template <class T>
+class lowerTriangularMatrixs
+{
+private:
+	int n;
+	T *t;
+public:
+	lowerTriangularMatrixs(int s)
+	{
+		n = s;
+		t = new T[n*(n + 1) / 2];
+		for (int i = 0; i < n*(n + 1) / 2; i++)
+		{
+			t[i] = 1;
+		}
+	}
+	void set(int x, int y, T item)
+	{
+		if (x <= 0 || y <= 0 || x > n || y > n)
+		{
+			cout << "越界" << endl;
+			return;
+		}
+		if (y > x&&item != 0)
+		{
+			cout << "上三角为零" << endl;
+			return;
+		}
+		t[(x - 1)*x / 2 + y - 1] = item;
+	}
+	void get(int x, int y, T& item) {
+		if (x <= 0 || y <= 0 || x > n || y > n)
+		{
+			cout << "越界" << endl;
+			return;
+		}
+		if (y > x)
+		{
+			item = 0;
+			return;
+		}
+		item = t[(x - 1)*x / 2 + y - 1];
+	}
+	void input()
+	{
+		for (int i = 1; i <= n; i++)
+		{
+			for (int j = 1; j <= i; j++)
+			{
+				T temp;
+				cin >> temp;
+				this->set(i, j, temp);
+			}
+		}
+	}
+	void output()
+	{
+		for (int i = 1; i <= n; i++)
+		{
+			for (int j = 1; j <= n; j++)
+			{
+				T temp;
+				this->get(i, j, temp);
+				cout << temp << " ";
+			}
+			cout << endl;
+		}
+	}
+	upperTriangularMatrixs<T> trans()
+	{
+		upperTriangularMatrixs<T> m(this->n);
+		for (int i = 1; i <= n; i++)
+		{
+			for (int j = 1; j <= i; j++)
+			{
+				T temp;
+				this->get(i, j, temp);
+				m.set(j, i, temp);
+			}
+		}
+		return m;
+	}
+};
+int main(){
+	int d;
+	cout << "请输入矩阵的维度：";
+	cin >> d;
+	lowerTriangularMatrixs<int> a(d);
+	a.input();
+	cout << endl;
+	a.output();
+	cout << endl;
+	upperTriangularMatrixs<int> b(d);
+	b = a.trans();
+	cout << endl;
+	b.output();
+	return 0;
+}*/
+
+//第三次作业第二题 稀疏矩阵的乘法
+/*#include <iostream>
+using namespace std;
+
+struct SparseMatrix {
+	int rows;
+	int cols;
+	int** values;
+
+	SparseMatrix(int r, int c) : rows(r), cols(c) {
+		values = new int*[r];
+		for (int i = 0; i < r; ++i) {
+			values[i] = new int[c];
+			for (int j = 0; j < c; ++j) {
+				values[i][j] = 0;
+			}
+		}
+	}
+
+	~SparseMatrix() {
+		for (int i = 0; i < rows; ++i) {
+			delete[] values[i];
+		}
+		delete[] values;
+	}
+
+	void input() {
+		cout << "请输入矩阵的元素（输入0表示该位置为零）:" << endl;
+		for (int i = 0; i < rows; ++i) {
+			for (int j = 0; j < cols; ++j) {
+				cin >> values[i][j];
+			}
+		}
+	}
+
+	void print() const {
+		for (int i = 0; i < rows; ++i) {
+			for (int j = 0; j < cols; ++j) {
+				cout << values[i][j] << " ";
+			}
+			cout << endl;
+		}
+	}
+};
+
+void multiplySparseMatrices(const SparseMatrix& A, const SparseMatrix& B, SparseMatrix& C) {
+	if (A.cols != B.rows) {
+		cout << "矩阵无法相乘，列数和行数不匹配！" << endl;
+		return;
+	}
+
+	for (int i = 0; i < A.rows; ++i) {
+		for (int j = 0; j < B.cols; ++j) {
+			C.values[i][j] = 0;
+			for (int k = 0; k < A.cols; ++k) {
+				C.values[i][j] += A.values[i][k] * B.values[k][j];
+			}
+		}
+	}
+}
+
+int main() {
+	int A_rows, A_cols, B_rows, B_cols;
+
+	cout << "请输入稀疏矩阵A的行数和列数: ";
+	cin >> A_rows >> A_cols;
+	SparseMatrix A(A_rows, A_cols);
+	A.input();
+
+	cout << "请输入稀疏矩阵B的行数和列数: ";
+	cin >> B_rows >> B_cols;
+	SparseMatrix B(B_rows, B_cols);
+	B.input();
+
+	SparseMatrix C(A_rows, B_cols);
+	multiplySparseMatrices(A, B, C);
+
+	cout << "矩阵 A:" << endl;
+	A.print();
+
+	cout << "矩阵 B:" << endl;
+	B.print();
+
+	cout << "结果矩阵 C:" << endl;
+	C.print();
+
+	return 0;
+}*/
+
+//第三次作业第三题 1)已知一个元素的行、列和数值，存储这个元素。2)已知一个元素的行和列，从矩阵中取出这个元素，3)两个稀疏矩阵相加。4)两个稀疏矩阵相减5)两个稀疏矩阵相乘
+/*#include <iostream>
+using namespace std;
+
+template <class T>
+class Node {
+public:
+    int x, y;
+    T data;
+    Node* next;
+
+    Node(int a = 0, int b = 0, T t = 0) : x(a), y(b), data(t), next(nullptr) {}
+};
+
+template <class T>
+class linkedMatrix {
+private:
+    int rows, cols;
+    Node<T>* head;
+
+public:
+    linkedMatrix(int r, int c) : rows(r), cols(c), head(nullptr) {}
+
+    ~linkedMatrix() { clear(); }
+
+    void storeElement(int x, int y, T value) {
+        if (x <= 0 || x > rows || y <= 0 || y > cols) {
+            cout << "位置超出矩阵范围！" << endl;
+            return;
+        }
+
+        Node<T>* newNode = new Node<T>(x, y, value);
+        Node<T>* curr = head;
+        Node<T>* prev = nullptr;
+
+        while (curr && (curr->x < x || (curr->x == x && curr->y < y))) {
+            prev = curr;
+            curr = curr->next;
+        }
+
+        if (curr && curr->x == x && curr->y == y) {
+            curr->data = value; // Update existing element
+            delete newNode;
+        } else {
+            newNode->next = curr;
+            if (prev) {
+                prev->next = newNode;
+            } else {
+                head = newNode;
+            }
+        }
+    }
+
+    bool getElement(int x, int y, T& value) const {
+        if (x <= 0 || x > rows || y <= 0 || y > cols) {
+            cout << "位置超出矩阵范围！" << endl;
+            return false;
+        }
+        Node<T>* curr = head;
+        while (curr) {
+            if (curr->x == x && curr->y == y) {
+                value = curr->data;
+                return true;
+            }
+            curr = curr->next;
+        }
+        return false;
+    }
+
+    linkedMatrix<T> operator+(const linkedMatrix<T>& other) {
+        if (rows != other.rows || cols != other.cols) {
+            throw invalid_argument("矩阵大小不一致，无法相加！");
+        }
+
+        linkedMatrix<T> result(rows, cols);
+        Node<T>* curr1 = head;
+        Node<T>* curr2 = other.head;
+
+        while (curr1 || curr2) {
+            if (!curr2 || (curr1 && (curr1->x < curr2->x || (curr1->x == curr2->x && curr1->y < curr2->y)))) {
+                result.storeElement(curr1->x, curr1->y, curr1->data);
+                curr1 = curr1->next;
+            } else if (!curr1 || (curr2 && (curr2->x < curr1->x || (curr2->x == curr1->x && curr2->y < curr1->y)))) {
+                result.storeElement(curr2->x, curr2->y, curr2->data);
+                curr2 = curr2->next;
+            } else {
+                T sum = curr1->data + curr2->data;
+                if (sum != 0) {
+                    result.storeElement(curr1->x, curr1->y, sum);
+                }
+                curr1 = curr1->next;
+                curr2 = curr2->next;
+            }
+        }
+
+        return result;
+    }
+
+    linkedMatrix<T> operator-(const linkedMatrix<T>& other) {
+        if (rows != other.rows || cols != other.cols) {
+            throw invalid_argument("矩阵大小不一致，无法相减！");
+        }
+
+        linkedMatrix<T> result(rows, cols);
+        Node<T>* curr1 = head;
+        Node<T>* curr2 = other.head;
+
+        while (curr1 || curr2) {
+            if (!curr2 || (curr1 && (curr1->x < curr2->x || (curr1->x == curr2->x && curr1->y < curr2->y)))) {
+                result.storeElement(curr1->x, curr1->y, curr1->data);
+                curr1 = curr1->next;
+            } else if (!curr1 || (curr2 && (curr2->x < curr1->x || (curr2->x == curr1->x && curr2->y < curr1->y)))) {
+                result.storeElement(curr2->x, curr2->y, -curr2->data);
+                curr2 = curr2->next;
+            } else {
+                T diff = curr1->data - curr2->data;
+                if (diff != 0) {
+                    result.storeElement(curr1->x, curr1->y, diff);
+                }
+                curr1 = curr1->next;
+                curr2 = curr2->next;
+            }
+        }
+
+        return result;
+    }
+
+    linkedMatrix<T> operator*(const linkedMatrix<T>& other) {
+        if (cols != other.rows) {
+            throw invalid_argument("矩阵大小不匹配，无法相乘！");
+        }
+
+        linkedMatrix<T> result(rows, other.cols);
+        for (int i = 1; i <= rows; ++i) {
+            for (int j = 1; j <= other.cols; ++j) {
+                T sum = 0;
+                Node<T>* curr1 = head;
+                while (curr1) {
+                    if (curr1->x == i) {
+                        T val2 = 0;
+                        if (other.getElement(curr1->y, j, val2)) {
+                            sum += curr1->data * val2;
+                        }
+                    }
+                    curr1 = curr1->next;
+                }
+                if (sum != 0) {
+                    result.storeElement(i, j, sum);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    void clear() {
+        while (head) {
+            Node<T>* temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+
+    void print() const {
+        for (int i = 1; i <= rows; ++i) {
+            for (int j = 1; j <= cols; ++j) {
+                T value = 0;
+                cout << (getElement(i, j, value) ? value : 0) << " ";
+            }
+            cout << endl;
+        }
+    }
+};
+
+int main() {
+    try {
+        linkedMatrix<int> A(2, 2), B(2, 2);
+
+        A.storeElement(1, 1, 1);
+        A.storeElement(1, 2, 2);
+        A.storeElement(2, 1, 3);
+        A.storeElement(2, 2, 4);
+
+        B.storeElement(1, 1, 5);
+        B.storeElement(1, 2, 6);
+        B.storeElement(2, 1, 7);
+        B.storeElement(2, 2, 8);
+
+        linkedMatrix<int> C = A + B;
+        linkedMatrix<int> D = A - B;
+        linkedMatrix<int> E = A * B;
+
+        cout << "矩阵 A:" << endl;
+        A.print();
+
+        cout << "矩阵 B:" << endl;
+        B.print();
+
+        cout << "A + B:" << endl;
+        C.print();
+
+        cout << "A - B:" << endl;
+        D.print();
+
+        cout << "A * B:" << endl;
+        E.print();
+    } catch (const exception& e) {
+        cout << e.what() << endl;
+    }
+
+    return 0;
+}*/
