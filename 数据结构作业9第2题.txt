@@ -1,0 +1,283 @@
+#include <iostream>
+using namespace std;
+
+class dBSTree {
+public:
+    virtual bool find(int key) = 0;
+    virtual void insert(int key) = 0;
+    virtual void remove(int key) = 0;
+    virtual void ascend() = 0;
+    virtual ~dBSTree() = default;
+};
+
+enum Color { RED, BLACK };
+
+struct dRBTreeNode {
+    int key;
+    Color color;
+    dRBTreeNode* left;
+    dRBTreeNode* right;
+    dRBTreeNode* parent;
+    dRBTreeNode(int value) : key(value), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
+};
+
+class dRedBlackTree : public dBSTree {
+private:
+    dRBTreeNode* root;
+
+    void rotateLeft(dRBTreeNode*& node);
+    void rotateRight(dRBTreeNode*& node);
+    void fixViolation(dRBTreeNode*& node);
+    dRBTreeNode* BSTInsert(dRBTreeNode* root, dRBTreeNode* node);
+    void inorder(dRBTreeNode* node);
+    dRBTreeNode* findMin(dRBTreeNode* node);
+    void destroyTree(dRBTreeNode* node);
+    void transplant(dRBTreeNode* u, dRBTreeNode* v);
+    void fixRemove(dRBTreeNode* x);
+
+public:
+    dRedBlackTree() : root(nullptr) {}
+    ~dRedBlackTree();
+    bool find(int key) override;
+    void insert(int key) override;
+    void remove(int key) override;
+    void ascend() override;
+};
+
+dRedBlackTree::~dRedBlackTree() {
+    destroyTree(root);
+}
+
+void dRedBlackTree::destroyTree(dRBTreeNode* node) {
+    if (node) {
+        destroyTree(node->left);
+        destroyTree(node->right);
+        delete node;
+    }
+}
+
+dRBTreeNode* dRedBlackTree::BSTInsert(dRBTreeNode *root, dRBTreeNode *node) {
+    if (!root) return node;
+    if (node->key < root->key) {
+        root->left = BSTInsert(root->left, node);
+        root->left->parent = root;
+    } else {
+        root->right = BSTInsert(root->right, node);
+        root->right->parent = root;
+    }
+    return root;
+}
+
+void dRedBlackTree::rotateLeft(dRBTreeNode *&node) {
+    dRBTreeNode *y = node->right;
+    node->right = y->left;
+    if (y->left) y->left->parent = node;
+
+    y->parent = node->parent;
+    if (!node->parent) {
+        root = y;
+    } else if (node == node->parent->left) {
+        node->parent->left = y;
+    } else {
+        node->parent->right = y;
+    }
+    y->left = node;
+    node->parent = y;
+}
+
+void dRedBlackTree::rotateRight(dRBTreeNode *&node) {
+    dRBTreeNode *y = node->left;
+    node->left = y->right;
+    if (y->right) y->right->parent = node;
+
+    y->parent = node->parent;
+    if (!node->parent) {
+        root = y;
+    } else if (node == node->parent->left) {
+        node->parent->left = y;
+    } else {
+        node->parent->right = y;
+    }
+    y->right = node;
+    node->parent = y;
+}
+
+void dRedBlackTree::fixViolation(dRBTreeNode*& node) {
+    while (node != root && node->color == RED && node->parent->color == RED) {
+        dRBTreeNode *parent = node->parent;
+        dRBTreeNode *grandparent = parent->parent;
+        dRBTreeNode *uncle = (parent == grandparent->left) ? grandparent->right : grandparent->left;
+
+        if (uncle && uncle->color == RED) {
+            grandparent->color = RED;
+            parent->color = BLACK;
+            uncle->color = BLACK;
+            node = grandparent;
+        } else {
+            if (parent == grandparent->left) {
+                if (node == parent->right) {
+                    rotateLeft(parent);
+                    node = parent;
+                }
+                rotateRight(grandparent);
+            } else {
+                if (node == parent->left) {
+                    rotateRight(parent);
+                    node = parent;
+                }
+                rotateLeft(grandparent);
+            }
+            swap(parent->color, grandparent->color);
+            node = parent;
+        }
+    }
+    root->color = BLACK;
+}
+
+void dRedBlackTree::insert(int key) {
+    dRBTreeNode *node = new dRBTreeNode(key);
+    root = BSTInsert(root, node);
+    fixViolation(node);
+}
+
+bool dRedBlackTree::find(int key) {
+    dRBTreeNode *current = root;
+    while (current) {
+        if (key == current->key) return true; // O(log n)
+        current = (key < current->key) ? current->left : current->right;
+    }
+    return false; // O(log n)
+}
+
+void dRedBlackTree::inorder(dRBTreeNode *node) {
+    if (node) {
+        inorder(node->left);
+        cout << node->key << " ";
+        inorder(node->right);
+    }
+}
+
+void dRedBlackTree::ascend() {
+    inorder(root);
+    cout << endl;
+}
+
+dRBTreeNode* dRedBlackTree::findMin(dRBTreeNode* node) {
+    while (node && node->left) {
+        node = node->left;
+    }
+    return node;
+}
+
+void dRedBlackTree::remove(int key) {
+    dRBTreeNode* node = root;
+    dRBTreeNode* targetNode = nullptr;
+
+    while (node) {
+        if (key == node->key) {
+            targetNode = node;
+            break;
+        }
+        node = (key < node->key) ? node->left : node->right;
+    }
+
+    if (!targetNode)
+        return;
+
+    Color originalColor = targetNode->color;
+    dRBTreeNode* x = nullptr;
+
+    if (!targetNode->left) {
+        x = targetNode->right;
+        transplant(targetNode, targetNode->right);
+    } else if (!targetNode->right) {
+        x = targetNode->left;
+        transplant(targetNode, targetNode->left);
+    } else {
+        dRBTreeNode* y = findMin(targetNode->right);
+        originalColor = y->color;
+        x = y->right;
+
+        if (y->parent == targetNode) {
+            if (x) x->parent = y;
+        } else {
+            transplant(y, y->right);
+            y->right = targetNode->right;
+            y->right->parent = y;
+        }
+        transplant(targetNode, y);
+        y->left = targetNode->left;
+        y->left->parent = y;
+        y->color = targetNode->color;
+    }
+
+    delete targetNode;
+
+    if (originalColor == BLACK) {
+        fixRemove(x);
+    }
+}
+
+void dRedBlackTree::transplant(dRBTreeNode* u, dRBTreeNode* v) {
+    if (!u->parent) {
+        root = v;
+    } else if (u == u->parent->left) {
+        u->parent->left = v;
+    } else {
+        u->parent->right = v;
+    }
+    if (v) v->parent = u->parent;
+}
+
+void dRedBlackTree::fixRemove(dRBTreeNode* x) {
+    while (x != root && (!x || x->color == BLACK)) {
+        dRBTreeNode* w = (x == x->parent->left) ? x->parent->right : x->parent->left;
+        if (w->color == RED) {
+            w->color = BLACK;
+            x->parent->color = RED;
+            if (x == x->parent->left) rotateLeft(x->parent);
+            else rotateRight(x->parent);
+            w = (x == x->parent->left) ? x->parent->right : x->parent->left;
+        }
+        if ((!w->left || w->left->color == BLACK) && (!w->right || w->right->color == BLACK)) {
+            w->color = RED;
+            x = x->parent;
+        } else {
+            if (!w->right || w->right->color == BLACK) {
+                if (w->left) w->left->color = BLACK;
+                w->color = RED;
+                if (x == x->parent->left) rotateRight(w);
+                else rotateLeft(w);
+                w = (x == x->parent->left) ? x->parent->right : x->parent->left;
+            }
+            w->color = x->parent->color;
+            x->parent->color = BLACK;
+            if (w->right) w->right->color = BLACK;
+            if (x == x->parent->left) rotateLeft(x->parent);
+            else rotateRight(x->parent);
+            x = root;
+        }
+    }
+    if (x) x->color = BLACK;
+}
+
+int main() {
+    dRedBlackTree tree;
+    tree.insert(50);
+    tree.insert(30);
+    tree.insert(20);
+    tree.insert(40);
+    tree.insert(70);
+    tree.insert(60);
+    tree.insert(80);
+    tree.insert(50);
+
+    cout << "dRedBlack树: ";
+    tree.ascend();
+
+    tree.remove(50);
+    cout << "dRedBlack树(删除50后): ";
+    tree.ascend();
+
+    return 0;
+}

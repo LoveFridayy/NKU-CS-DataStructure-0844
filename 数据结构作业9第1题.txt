@@ -1,0 +1,222 @@
+#include <iostream>
+using namespace std;
+
+class bSTree {
+    public:
+        virtual bool find(int key) = 0;
+        virtual void insert(int key) = 0;
+        virtual void remove(int key) = 0;
+        virtual void ascend() = 0;
+        virtual ~bSTree() = default;
+};
+
+enum Color {RED, BLACK};
+
+struct RBTreeNode {
+    int key;
+    Color color;
+    RBTreeNode* left;
+    RBTreeNode* right;
+    RBTreeNode* parent;
+    RBTreeNode(int value) : key(value), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
+};
+
+class RBTree : public bSTree {
+    private:
+        RBTreeNode* root;
+
+        void rotateLeft(RBTreeNode* &node);
+        void rotateRight(RBTreeNode* &node);
+        void fixViolation(RBTreeNode* &node);
+        RBTreeNode* BSTInsert(RBTreeNode* root, RBTreeNode* node);
+        void inorder(RBTreeNode* node);
+        RBTreeNode* findMin(RBTreeNode* node);
+
+    public:
+        RBTree() : root(nullptr) {}
+        bool find(int key) override;
+        void insert(int key) override;
+        void remove(int key) override;
+        void ascend() override;
+        ~RBTree(); // 执行析构函数以释放内存
+};
+
+RBTree::~RBTree() {
+    // 释放树的所有节点
+    while (root) {
+        remove(root->key);
+    }
+}
+
+RBTreeNode* RBTree::BSTInsert(RBTreeNode *root, RBTreeNode *node) {
+    if (!root) return node;
+    if (node->key < root->key) {
+        root->left = BSTInsert(root->left, node);
+        root->left->parent = root;
+    } else if (node->key > root->key) {
+        root->right = BSTInsert(root->right, node);
+        root->right->parent = root;
+    }
+    return root;
+}
+
+void RBTree::rotateLeft(RBTreeNode *&node) {
+    RBTreeNode *y = node->right;
+    node->right = y->left;
+    if (y->left) y->left->parent = node;
+
+    y->parent = node->parent;
+    if (!node->parent) {
+        root = y;
+    } else if (node == node->parent->left) {
+        node->parent->left = y;
+    } else {
+        node->parent->right = y;
+    }
+
+    y->left = node;
+    node->parent = y;
+}
+
+void RBTree::rotateRight(RBTreeNode *&node) {
+    RBTreeNode *y = node->left;
+    node->left = y->right;
+    if (y->right) y->right->parent = node;
+
+    y->parent = node->parent;
+    if (!node->parent) {
+        root = y;
+    } else if (node == node->parent->left) {
+        node->parent->left = y;
+    } else {
+        node->parent->right = y;
+    }
+
+    y->right = node;
+    node->parent = y;
+}
+
+void RBTree::fixViolation(RBTreeNode *&node) {
+    while (node != root && node->color == RED && node->parent->color == RED) {
+        RBTreeNode *parent = node->parent;
+        RBTreeNode *grandparent = parent->parent;
+        RBTreeNode *uncle = (parent == grandparent->left) ? grandparent->right : grandparent->left;
+
+        if (uncle && uncle->color == RED) {
+            grandparent->color = RED;
+            parent->color = BLACK;
+            uncle->color = BLACK;
+            node = grandparent;
+        } else {
+            if (parent == grandparent->left) {
+                if (node == parent->right) {
+                    rotateLeft(parent);
+                    node = parent;
+                    parent = node->parent;
+                }
+                rotateRight(grandparent);
+            } else {
+                if (node == parent->left) {
+                    rotateRight(parent);
+                    node = parent;
+                    parent = node->parent;
+                }
+                rotateLeft(grandparent);
+            }
+            swap(parent->color, grandparent->color);
+            node = parent;
+        }
+    }
+    root->color = BLACK;
+}
+
+void RBTree::insert(int key) {
+    RBTreeNode *node = new RBTreeNode(key);
+    root = BSTInsert(root, node);
+    fixViolation(node);
+}
+
+bool RBTree::find(int key) {
+    RBTreeNode *current = root;
+    while (current) {
+        if (key == current->key) return true;
+        current = (key < current->key) ? current->left : current->right;
+    }
+    return false;
+}
+
+void RBTree::inorder(RBTreeNode *node) {
+    if (!node) return;
+    inorder(node->left);
+    cout << node->key << " ";
+    inorder(node->right);
+}
+
+void RBTree::ascend() {
+    inorder(root);
+    cout << endl;
+}
+
+RBTreeNode* RBTree::findMin(RBTreeNode* node) {
+    while (node && node->left) {
+        node = node->left;
+    }
+    return node;
+}
+
+void RBTree::remove(int key) {
+    RBTreeNode *nodeToDelete = root;
+    while (nodeToDelete) {
+        if (key == nodeToDelete->key) break;
+        nodeToDelete = (key < nodeToDelete->key) ? nodeToDelete->left : nodeToDelete->right;
+    }
+
+    if (!nodeToDelete) {
+        cout << "错误: Key " << key << " 不存在." << endl;
+        return;
+    }
+
+    Color originalColor = nodeToDelete->color;
+    RBTreeNode *child = (nodeToDelete->left) ? nodeToDelete->left : nodeToDelete->right;
+
+    if (nodeToDelete->left && nodeToDelete->right) {
+        RBTreeNode *successor = findMin(nodeToDelete->right);
+        nodeToDelete->key = successor->key;
+        nodeToDelete = successor;
+        child = successor->right;
+    }
+
+    if (child) child->parent = nodeToDelete->parent;
+
+    if (!nodeToDelete->parent) {
+        root = child;
+    } else if (nodeToDelete == nodeToDelete->parent->left) {
+        nodeToDelete->parent->left = child;
+    } else {
+        nodeToDelete->parent->right = child;
+    }
+
+    delete nodeToDelete;
+
+    if (originalColor == BLACK) fixViolation(child);
+}
+
+int main() {
+    RBTree tree;
+    tree.insert(50);
+    tree.insert(30);
+    tree.insert(20);
+    tree.insert(40);
+    tree.insert(70);
+    tree.insert(60);
+    tree.insert(80);
+
+    cout << "RB树: ";
+    tree.ascend();
+
+    tree.remove(50);
+    cout << "RB树(删除50后): ";
+    tree.ascend();
+
+    return 0;
+}
